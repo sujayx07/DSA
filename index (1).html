@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCS NQT Coding Sheet Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="solution-notes.js"></script>
+    <script src="solution-code.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #6ee7b7 0%, #3b82f6 50%, #9333ea 100%);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .custom-checkbox:checked+label {
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+
+        /* Smooth transitions */
+        .tr-all {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-hidden {
+            display: none;
+        }
+
+        .modal-body {
+            max-height: 75vh;
+            overflow-y: auto;
+        }
+
+        .solution-list {
+            list-style: decimal;
+            padding-left: 1.25rem;
+        }
+
+        .solution-list li {
+            margin-bottom: 0.65rem;
+        }
+
+        .code-block {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800 min-h-screen pb-12">
+
+    <div class="gradient-bg text-white py-12 px-4 shadow-lg relative overflow-hidden mb-8 subtle-animate">
+        <div class="absolute inset-0 bg-white/10 opacity-30 mix-blend-overlay pattern-grid"></div>
+        <div class="max-w-6xl mx-auto relative z-10 text-center md:text-left md:flex justify-between items-center">
+            <div>
+                <span
+                    class="bg-white/20 text-white font-semibold text-xs px-3 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm">Preparation
+                    Dashboard</span>
+                <h1 class="text-3xl md:text-5xl font-extrabold mt-3 tracking-tight drop-shadow-sm">TCS NQT Coding Sheet
+                </h1>
+                <p class="text-blue-55 mt-2 max-w-2xl text-sm md:text-base text-white/90">
+                    Master the Top 100 most frequent coding problems asked in TCS NQT, Ninja, and Digital exams. Track
+                    your progress locally.
+                </p>
+            </div>
+            <div
+                class="mt-6 md:mt-0 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 text-center min-w-[200px]">
+                <div class="text-xs uppercase font-bold tracking-widest text-white/80">Overall Progress</div>
+                <div class="text-4xl font-black my-1" id="progress-percent">0%</div>
+                <div class="w-full bg-white/20 h-2 rounded-full overflow-hidden mt-2">
+                    <div id="progress-bar" class="bg-white h-full tr-all" style="width: 0%"></div>
+                </div>
+                <div class="text-xs mt-2 text-white/90"><span id="completed-count">0</span> of <span
+                        id="total-count">0</span> Solved</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4">
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-between items-center mb-8">
+            <div class="relative w-full sm:w-72">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="search-bar" placeholder="Search questions..."
+                    class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all text-sm">
+            </div>
+            <div class="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+                <button onclick="filterCategory('all')"
+                    class="cat-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-blue-600 text-white shadow-md cursor-pointer tr-all">All
+                    Topics</button>
+                <button onclick="filterCategory('array')"
+                    class="cat-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer tr-all">Arrays</button>
+                <button onclick="filterCategory('numbers')"
+                    class="cat-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer tr-all">Numbers</button>
+                <button onclick="filterCategory('numsystem')"
+                    class="cat-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer tr-all">Number
+                    System</button>
+                <button onclick="filterCategory('sorting')"
+                    class="cat-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer tr-all">Sorting</button>
+                <button onclick="filterCategory('string')"
+                    class="cat-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer tr-all">Strings</button>
+            </div>
+        </div>
+
+        <div id="sheet-container" class="space-y-10">
+        </div>
+    </div>
+
+    <div id="solution-modal" class="modal-hidden fixed inset-0 z-50 items-center justify-center px-4 py-6">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeSolutionModal()"></div>
+        <div class="relative w-full max-w-2xl rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
+            <div
+                class="flex items-start justify-between gap-4 px-6 py-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-[0.2em] text-blue-600">Solution Notes</div>
+                    <h3 id="modal-title" class="text-2xl font-extrabold text-slate-900 mt-1"></h3>
+                    <p id="modal-subtitle" class="text-sm text-slate-500 mt-1"></p>
+                </div>
+                <button onclick="closeSolutionModal()"
+                    class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 tr-all"
+                    aria-label="Close solution popup">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-5 modal-body">
+                <div class="rounded-2xl bg-blue-50 border border-blue-100 p-4">
+                    <div class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-2">Main Idea</div>
+                    <p id="modal-overview" class="text-slate-700 leading-7"></p>
+                </div>
+                <div class="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Step by Step Algorithm
+                    </div>
+                    <ol id="modal-steps" class="solution-list text-slate-700 leading-7"></ol>
+                </div>
+                <div class="rounded-2xl bg-indigo-50 border border-indigo-100 p-4">
+                    <div class="text-xs font-bold uppercase tracking-wider text-indigo-600 mb-2">Important Variables
+                    </div>
+                    <p id="modal-variables" class="text-sm text-slate-700 leading-7"></p>
+                </div>
+                <div class="rounded-2xl bg-slate-900 text-slate-50 border border-slate-800 p-4 overflow-x-auto">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Pseudo Code</div>
+                    <div id="modal-pseudocode" class="text-sm leading-6 font-mono space-y-1"></div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="rounded-2xl bg-emerald-50 border border-emerald-100 p-4">
+                        <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-2">Why this works
+                        </div>
+                        <p id="modal-why" class="text-sm text-slate-700 leading-6"></p>
+                    </div>
+                    <div class="rounded-2xl bg-amber-50 border border-amber-100 p-4">
+                        <div class="text-xs font-bold uppercase tracking-wider text-amber-600 mb-2">Complexity</div>
+                        <p id="modal-complexity" class="text-sm text-slate-700 leading-6"></p>
+                    </div>
+                </div>
+                <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Interview Tip</div>
+                    <p id="modal-tip" class="text-slate-700 leading-7"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="code-modal" class="modal-hidden fixed inset-0 z-50 items-center justify-center px-4 py-6">
+        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onclick="closeCodeModal()"></div>
+        <div
+            class="relative w-full max-w-4xl rounded-3xl bg-slate-950 text-slate-100 shadow-2xl border border-slate-800 overflow-hidden">
+            <div class="flex items-start justify-between gap-4 px-6 py-5 border-b border-slate-800 bg-slate-900">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">Full Java Code</div>
+                    <h3 id="code-modal-title" class="text-2xl font-extrabold text-white mt-1"></h3>
+                    <p id="code-modal-subtitle" class="text-sm text-slate-400 mt-1"></p>
+                </div>
+                <button onclick="closeCodeModal()"
+                    class="w-10 h-10 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white tr-all"
+                    aria-label="Close code popup">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="px-6 py-5">
+                <div class="rounded-2xl bg-slate-900 border border-slate-800 p-4 overflow-auto max-h-[75vh]">
+                    <pre id="code-modal-content" class="code-block text-sm leading-6 font-mono text-slate-100"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive mapping dataset containing exact matching LeetCode Problems
+        const dataset = [
+            {
+                category: "Problems on Arrays",
+                catId: "array",
+                icon: "fa-layer-group",
+                color: "from-emerald-400 to-teal-600",
+                questions: [
+                    { name: "Find the smallest number in an array", lcName: "Find Minimum in Rotated Sorted Array", lcUrl: "https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/" },
+                    { name: "Find the largest number in an array", lcName: "Third Maximum Number (Concept)", lcUrl: "https://leetcode.com/problems/third-maximum-number/" },
+                    { name: "Second Smallest and Second Largest element in an array", lcName: "Sort an Array", lcUrl: "https://leetcode.com/problems/sort-an-array/" },
+                    { name: "Reverse a given array", lcName: "Reverse String (Array-based Logic)", lcUrl: "https://leetcode.com/problems/reverse-string/" },
+                    { name: "Count frequency of each element in an array", lcName: "Sort Array by Increasing Frequency", lcUrl: "https://leetcode.com/problems/sort-array-by-increasing-frequency/" },
+                    { name: "Rearrange array in increasing-decreasing order", lcName: "Wiggle Sort II", lcUrl: "https://leetcode.com/problems/wiggle-sort-ii/" },
+                    { name: "Calculate sum of the elements of the array", lcName: "Running Sum of 1d Array", lcUrl: "https://leetcode.com/problems/running-sum-of-1d-array/" },
+                    { name: "Rotate array by K elements - Block Swap Algorithm", lcName: "Rotate Array", lcUrl: "https://leetcode.com/problems/rotate-array/" },
+                    { name: "Average of all elements in an array", lcName: "Maximum Average Subarray I", lcUrl: "https://leetcode.com/problems/maximum-average-subarray-i/" },
+                    { name: "Find the median of the given array", lcName: "Median of Two Sorted Arrays", lcUrl: "https://leetcode.com/problems/median-of-two-sorted-arrays/" },
+                    { name: "Remove duplicates from a sorted array", lcName: "Remove Duplicates from Sorted Array", lcUrl: "https://leetcode.com/problems/remove-duplicates-from-sorted-array/" },
+                    { name: "Remove duplicates from unsorted array", lcName: "Contains Duplicate", lcUrl: "https://leetcode.com/problems/contains-duplicate/" },
+                    { name: "Adding Element in an array", lcName: "Insert Delete GetRandom O(1)", lcUrl: "https://leetcode.com/problems/insert-delete-getrandom-o1/" },
+                    { name: "Find all repeating elements in an array", lcName: "Find All Duplicates in an Array", lcUrl: "https://leetcode.com/problems/find-all-duplicates-in-an-array/" },
+                    { name: "Find all non-repeating elements in an array", lcName: "Single Number", lcUrl: "https://leetcode.com/problems/single-number/" },
+                    { name: "Find all symmetric pairs in array", lcName: "Two Sum", lcUrl: "https://leetcode.com/problems/two-sum/" },
+                    { name: "Maximum product subarray in an array", lcName: "Maximum Product Subarray", lcUrl: "https://leetcode.com/problems/maximum-product-subarray/" },
+                    { name: "Replace each element of the array by its rank in the array", lcName: "Rank Transform of an Array", lcUrl: "https://leetcode.com/problems/rank-transform-of-an-array/" },
+                    { name: "Sorting elements of an array by frequency", lcName: "Sort Array by Increasing Frequency", lcUrl: "https://leetcode.com/problems/sort-array-by-increasing-frequency/" },
+                    { name: "Rotation of elements of array- left and right", lcName: "Rotate Array", lcUrl: "https://leetcode.com/problems/rotate-array/" },
+                    { name: "Finding equilibrium index of an array", lcName: "Find Pivot Index", lcUrl: "https://leetcode.com/problems/find-pivot-index/" },
+                    { name: "Finding Circular rotation of an array by K positions", lcName: "Rotate Array", lcUrl: "https://leetcode.com/problems/rotate-array/" },
+                    { name: "Sort an array according to the order defined by another array", lcName: "Relative Sort Array", lcUrl: "https://leetcode.com/problems/relative-sort-array/" },
+                    { name: "Search an element in an array", lcName: "Binary Search", lcUrl: "https://leetcode.com/problems/binary-search/" },
+                    { name: "Check if Array is a subset of another array or not", lcName: "Intersection of Two Arrays II", lcUrl: "https://leetcode.com/problems/intersection-of-two-arrays-ii/" }
+                ]
+            },
+            {
+                category: "Problems on Numbers",
+                catId: "numbers",
+                icon: "fa-arrow-1-9",
+                color: "from-blue-500 to-indigo-600",
+                questions: [
+                    { name: "Check if a number is palindrome or not", lcName: "Palindrome Number", lcUrl: "https://leetcode.com/problems/palindrome-number/" },
+                    { name: "Find all Palindrome numbers in a given range", lcName: "Find All Good Strings (Range Concept)", lcUrl: "https://leetcode.com/problems/find-all-good-strings/" },
+                    { name: "Check if a number is prime or not", lcName: "Count Primes (Basic Check)", lcUrl: "https://leetcode.com/problems/count-primes/" },
+                    { name: "Prime numbers in a given range", lcName: "Count Primes", lcUrl: "https://leetcode.com/problems/count-primes/" },
+                    { name: "Check if a number is armstrong number of not", lcName: "Armstrong Number (Premium)", lcUrl: "https://leetcode.com/problems/armstrong-number/" },
+                    { name: "Check if a number is perfect number", lcName: "Perfect Number", lcUrl: "https://leetcode.com/problems/perfect-number/" },
+                    { name: "Even or Odd", lcName: "Sort Array By Parity", lcUrl: "https://leetcode.com/problems/sort-array-by-parity/" },
+                    { name: "Check whether a given number is positive or negative", lcName: "Sign of the Product of an Array", lcUrl: "https://leetcode.com/problems/sign-of-the-product-of-an-array/" },
+                    { name: "Sum of first N natural numbers", lcName: "Missing Number (Sum Formula)", lcUrl: "https://leetcode.com/problems/missing-number/" },
+                    { name: "Find Sum of AP Series", lcName: "Can Make Arithmetic Progression From Sequence", lcUrl: "https://leetcode.com/problems/can-make-arithmetic-progression-from-sequence/" },
+                    { name: "Program to find sum of GP Series", lcName: "Geometric Progression Check", lcUrl: "https://leetcode.com/problems/" },
+                    { name: "Greatest of two numbers", lcName: "Maximum of Two Numbers", lcUrl: "https://leetcode.com/problems/" },
+                    { name: "Greatest of three numbers", lcName: "Third Maximum Number", lcUrl: "https://leetcode.com/problems/third-maximum-number/" },
+                    { name: "Leap Year or not", lcName: "Day of the Year", lcUrl: "https://leetcode.com/problems/day-of-the-year/" },
+                    { name: "Reverse digits of a number", lcName: "Reverse Integer", lcUrl: "https://leetcode.com/problems/reverse-integer/" },
+                    { name: "Maximum and Minimum digit in a number", lcName: "Subtract the Product and Sum of Digits", lcUrl: "https://leetcode.com/problems/subtract-the-product-and-sum-of-digits-of-an-integer/" },
+                    { name: "Print Fibonacci upto Nth Term", lcName: "Fibonacci Number", lcUrl: "https://leetcode.com/problems/fibonacci-number/" },
+                    { name: "Factorial of a number", lcName: "Factorial Trailing Zeroes", lcUrl: "https://leetcode.com/problems/factorial-trailing-zeroes/" },
+                    { name: "Power of a number", lcName: "Pow(x, n)", lcUrl: "https://leetcode.com/problems/powx-n/" },
+                    { name: "Factors of a given number", lcName: "The k-th Factor of n", lcUrl: "https://leetcode.com/problems/the-k-th-factor-of-n/" },
+                    { name: "Print all prime factors of the given number", lcName: "Distinct Prime Factors of Product of Array", lcUrl: "https://leetcode.com/problems/distinct-prime-factors-of-product-of-array/" },
+                    { name: "Check if a number is a strong number or not", lcName: "Sum of Factorials", lcUrl: "https://leetcode.com/problems/" },
+                    { name: "Check if a Number is Automorphic", lcName: "Square of Number Properties", lcUrl: "https://leetcode.com/problems/" },
+                    { name: "GCD of two numbers", lcName: "Find Greatest Common Divisor of Array", lcUrl: "https://leetcode.com/problems/find-greatest-common-divisor-of-array/" },
+                    { name: "LCM of two numbers", lcName: "Smallest Even Multiple", lcUrl: "https://leetcode.com/problems/smallest-even-multiple/" },
+                    { name: "Check if a number is Harshad number", lcName: "Harshad Number", lcUrl: "https://leetcode.com/problems/harshad-number/" },
+                    { name: "Check if the number is abundant number or not", lcName: "Perfect Number (Variations)", lcUrl: "https://leetcode.com/problems/perfect-number/" },
+                    { name: "Sum of digits of a number", lcName: "Add Digits", lcUrl: "https://leetcode.com/problems/add-digits/" },
+                    { name: "Sum of numbers in the given range", lcName: "Range Sum Query - Immutable", lcUrl: "https://leetcode.com/problems/range-sum-query-immutable/" },
+                    { name: "Permutations in which N people can occupy R seats", lcName: "Permutations", lcUrl: "https://leetcode.com/problems/permutations/" },
+                    { name: "Program to add two fractions", lcName: "Fraction to Recurring Decimal", lcUrl: "https://leetcode.com/problems/fraction-to-recurring-decimal/" },
+                    { name: "Replace all 0s with 1s in a given integer", lcName: "Find Minimum Time to Finish All Jobs", lcUrl: "https://leetcode.com/problems/" },
+                    { name: "Can a number be expressed as a sum of two prime numbers", lcName: "2 Prime Sum / Goldbach's", lcUrl: "https://leetcode.com/problems/" },
+                    { name: "Calculate the area of circle", lcName: "Basic Math Geometry", lcUrl: "https://leetcode.com/problems/" },
+                    { name: "Program to find roots of a Quadratic Equation", lcName: "Mathematical Logic Structure", lcUrl: "https://leetcode.com/problems/" }
+                ]
+            },
+            {
+                category: "Problems on Number System",
+                catId: "numsystem",
+                icon: "fa-calculator",
+                color: "from-purple-500 to-pink-600",
+                questions: [
+                    { name: "Convert Binary to Decimal", lcName: "Convert Binary Number in a Linked List to Integer", lcUrl: "https://leetcode.com/problems/convert-binary-number-in-a-linked-list-to-integer/" },
+                    { name: "Convert binary to octal", lcName: "Base 7 Conversion (Concept Match)", lcUrl: "https://leetcode.com/problems/base-7/" },
+                    { name: "Decimal to Binary conversion", lcName: "Add Binary", lcUrl: "https://leetcode.com/problems/add-binary/" },
+                    { name: "Convert decimal to octal", lcName: "Base 7", lcUrl: "https://leetcode.com/problems/base-7/" },
+                    { name: "Convert octal to binary", lcName: "Base Representations", lcUrl: "https://leetcode.com/problems/" },
+                    { name: "Convert octal to decimal", lcName: "Base Representations", lcUrl: "https://leetcode.com/problems/" },
+                    { name: "Convert digits/numbers to words", lcName: "Integer to English Words", lcUrl: "https://leetcode.com/problems/integer-to-english-words/" }
+                ]
+            },
+            {
+                category: "Problems on Sorting",
+                catId: "sorting",
+                icon: "fa-arrow-down-a-z",
+                color: "from-amber-400 to-orange-600",
+                questions: [
+                    { name: "Bubble Sort Algorithm", lcName: "Sort an Array (Bubble Sort Logic)", lcUrl: "https://leetcode.com/problems/sort-an-array/" },
+                    { name: "Selection Sort Algorithm", lcName: "Sort an Array (Selection Sort)", lcUrl: "https://leetcode.com/problems/sort-an-array/" },
+                    { name: "Insertion Sort Algorithm", lcName: "Insertion Sort List", lcUrl: "https://leetcode.com/problems/insertion-sort-list/" },
+                    { name: "Quick Sort Algorithm", lcName: "Sort an Array (Quick Sort)", lcUrl: "https://leetcode.com/problems/sort-an-array/" },
+                    { name: "Merge sort algorithm", lcName: "Sort List (Merge Sort implementation)", lcUrl: "https://leetcode.com/problems/sort-list/" }
+                ]
+            },
+            {
+                category: "Problems on Strings",
+                catId: "string",
+                icon: "fa-font",
+                color: "from-rose-500 to-red-600",
+                questions: [
+                    { name: "Check if a given string is palindrome or not", lcName: "Valid Palindrome", lcUrl: "https://leetcode.com/problems/valid-palindrome/" },
+                    { name: "Count number of vowels, consonants, spaces in String", lcName: "Determine if String Halves Are Alike", lcUrl: "https://leetcode.com/problems/determine-if-string-halves-are-alike/" },
+                    { name: "Find the ASCII value of a character", lcName: "Score of a String", lcUrl: "https://leetcode.com/problems/score-of-a-string/" },
+                    { name: "Remove all vowels from the string", lcName: "Remove Vowels from a String (Premium)", lcUrl: "https://leetcode.com/problems/remove-vowels-from-a-string/" },
+                    { name: "Remove spaces from a string", lcName: "Defanging an IP Address (Character swapping)", lcUrl: "https://leetcode.com/problems/defanging-an-ip-address/" },
+                    { name: "Remove characters from a string except alphabets", lcName: "Valid Palindrome (Filtering Step)", lcUrl: "https://leetcode.com/problems/valid-palindrome/" },
+                    { name: "Reverse a String", lcName: "Reverse String", lcUrl: "https://leetcode.com/problems/reverse-string/" },
+                    { name: "Remove brackets from an algebraic expression", lcName: "Minimum Remove to Make Valid Parentheses", lcUrl: "https://leetcode.com/problems/minimum-remove-to-make-valid-parentheses/" },
+                    { name: "Sum of the numbers in a String", lcName: "Calculate Digit Sum of a String", lcUrl: "https://leetcode.com/problems/calculate-digit-sum-of-a-string/" },
+                    { name: "Capitalize first and last character of each word", lcName: "Capitalize the Title", lcUrl: "https://leetcode.com/problems/capitalize-the-title/" },
+                    { name: "Calculate frequency of characters in a string", lcName: "Sort Characters By Frequency", lcUrl: "https://leetcode.com/problems/sort-characters-by-frequency/" },
+                    { name: "Find Non-repeating characters of a String", lcName: "First Unique Character in a String", lcUrl: "https://leetcode.com/problems/first-unique-character-in-a-string/" },
+                    { name: "Check if two strings are anagram of each other", lcName: "Valid Anagram", lcUrl: "https://leetcode.com/problems/valid-anagram/" },
+                    { name: "Count common sub-sequence in two strings", lcName: "Longest Common Subsequence", lcUrl: "https://leetcode.com/problems/longest-common-subsequence/" },
+                    { name: "Check if two strings match where one string contains wildcard characters", lcName: "Wildcard Matching", lcUrl: "https://leetcode.com/problems/wildcard-matching/" },
+                    { name: "Return maximum occurring character in the input string", lcName: "Sort Characters By Frequency (Top item)", lcUrl: "https://leetcode.com/problems/sort-characters-by-frequency/" },
+                    { name: "Remove all duplicates from the input string", lcName: "Remove All Adjacent Duplicates In String", lcUrl: "https://leetcode.com/problems/remove-all-adjacent-duplicates-in-string/" },
+                    { name: "Print all the duplicates in the input string", lcName: "Find All Duplicates in an Array (String Map)", lcUrl: "https://leetcode.com/problems/find-all-duplicates-in-an-array/" },
+                    { name: "Remove characters from first string present in second string", lcName: "Find Common Characters (Inverse Logic)", lcUrl: "https://leetcode.com/problems/find-common-characters/" },
+                    { name: "Change every letter with the next lexicographic alphabet", lcName: "Replace Words (Shift logic)", lcUrl: "https://leetcode.com/problems/replace-words/" },
+                    { name: "Write a program to find the largest word in a given string", lcName: "Length of Last Word", lcUrl: "https://leetcode.com/problems/length-of-last-word/" },
+                    { name: "Write a program to sort characters in a string", lcName: "Sort Characters By Frequency", lcUrl: "https://leetcode.com/problems/sort-characters-by-frequency/" },
+                    { name: "Count number of words in a given string", lcName: "Number of Segments in a String", lcUrl: "https://leetcode.com/problems/number-of-segments-in-a-string/" },
+                    { name: "Highest number of repeated letters word", lcName: "Top K Frequent Words", lcUrl: "https://leetcode.com/problems/top-k-frequent-words/" },
+                    { name: "Change case of each character in a string", lcName: "To Lower Case", lcUrl: "https://leetcode.com/problems/to-lower-case/" },
+                    { name: "Concatenate one string to another", lcName: "Merge Strings Alternately", lcUrl: "https://leetcode.com/problems/merge-strings-alternately/" },
+                    { name: "Find a substring within a string and return start position", lcName: "Find the Index of the First Occurrence in a String", lcUrl: "https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/" },
+                    { name: "Reverse words in a string", lcName: "Reverse Words in a String", lcUrl: "https://leetcode.com/problems/reverse-words-in-a-string/" }
+                ]
+            }
+        ];
+
+        let totalQuestionsCount = 0;
+        let renderedQuestions = [];
+
+        function renderSolutionNotes(notes) {
+            document.getElementById('modal-overview').innerText = notes.overview;
+            document.getElementById('modal-steps').innerHTML = notes.steps.map(step => `<li>${step}</li>`).join('');
+            document.getElementById('modal-variables').innerText = notes.variables.join(', ');
+            document.getElementById('modal-pseudocode').innerHTML = notes.pseudoCode.map(line => `<div>${line}</div>`).join('');
+            document.getElementById('modal-why').innerText = notes.why;
+            document.getElementById('modal-complexity').innerText = notes.complexity;
+            document.getElementById('modal-tip').innerText = notes.interviewTip;
+        }
+
+        function openSolutionModal(question) {
+            const summary = normalizeSolutionNotes(getDetailedSolutionNotes(question), question);
+            document.getElementById('modal-title').innerText = question.name;
+            document.getElementById('modal-subtitle').innerText = summary.summaryLine;
+            renderSolutionNotes(summary);
+            document.getElementById('solution-modal').classList.remove('modal-hidden');
+            document.getElementById('solution-modal').classList.add('flex');
+        }
+
+        function openSolutionModalByIndex(index) {
+            const question = renderedQuestions[index];
+            if (!question) {
+                return;
+            }
+            openSolutionModal(question);
+        }
+
+        function openCodeModal(question) {
+            const codeInfo = getJavaSolutionCode(question);
+            document.getElementById('code-modal-title').innerText = question.name;
+            document.getElementById('code-modal-subtitle').innerText = `${question.lcName} · ${codeInfo.title}`;
+            document.getElementById('code-modal-content').innerText = codeInfo.code;
+            document.getElementById('code-modal').classList.remove('modal-hidden');
+            document.getElementById('code-modal').classList.add('flex');
+        }
+
+        function openCodeModalByIndex(index) {
+            const question = renderedQuestions[index];
+            if (!question) {
+                return;
+            }
+            openCodeModal(question);
+        }
+
+        function closeCodeModal() {
+            const modal = document.getElementById('code-modal');
+            modal.classList.add('modal-hidden');
+            modal.classList.remove('flex');
+        }
+
+        function closeSolutionModal() {
+            const modal = document.getElementById('solution-modal');
+            modal.classList.add('modal-hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Initialize and Build UI 
+        function renderSheet() {
+            const container = document.getElementById('sheet-container');
+            container.innerHTML = '';
+            totalQuestionsCount = 0;
+            renderedQuestions = [];
+            let questionGlobalIndex = 0;
+
+            dataset.forEach(cat => {
+                let sectionHTML = `
+                    <div class="topic-section bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden tr-all" data-cat="${cat.catId}">
+                        <div class="bg-gradient-to-r ${cat.color} px-6 py-4 flex items-center gap-3 text-white">
+                            <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                                <i class="fa-solid ${cat.icon} text-sm"></i>
+                            </div>
+                            <h2 class="font-bold text-lg tracking-tight">${cat.category}</h2>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-100 text-xs font-bold uppercase text-slate-500 tracking-wider">
+                                        <th class="py-3.5 px-6 w-16 text-center">Done</th>
+                                        <th class="py-3.5 px-4">Problem Statement</th>
+                                        <th class="py-3.5 px-4 w-1/3">LeetCode Equivalency Match</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm">
+                `;
+
+                cat.questions.forEach(q => {
+                    totalQuestionsCount++;
+                    renderedQuestions.push(q);
+                    const storageKey = `tcs_nqt_q_${questionGlobalIndex}`;
+                    const isChecked = localStorage.getItem(storageKey) === 'true';
+
+                    sectionHTML += `
+                        <tr class="question-row hover:bg-slate-50/80 tr-all" data-name="${q.name.toLowerCase()}">
+                            <td class="py-4 px-6 text-center">
+                                <input type="checkbox" id="${storageKey}" onchange="toggleState('${storageKey}')" ${isChecked ? 'checked' : ''}
+                                    class="custom-checkbox w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 accent-blue-600 transition-all cursor-pointer">
+                            </td>
+                            <td class="py-4 px-4 font-medium text-slate-700">
+                                <div class="flex flex-col gap-2">
+                                    <label for="${storageKey}" class="cursor-pointer select-none">${q.name}</label>
+                                    <div class="flex flex-wrap gap-2">
+                                        <button type="button" onclick="openSolutionModalByIndex(${questionGlobalIndex})" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg shadow-sm tr-all">
+                                            <i class="fa-solid fa-lightbulb"></i> Solution
+                                        </button>
+                                        <button type="button" onclick="openCodeModalByIndex(${questionGlobalIndex})" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-cyan-600 hover:bg-cyan-500 px-3 py-1.5 rounded-lg shadow-sm tr-all">
+                                            <i class="fa-solid fa-code"></i> Java Code
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-4 px-4">
+                                ${q.lcUrl !== 'https://leetcode.com/problems/' ? `
+                                    <a href="${q.lcUrl}" target="_blank" class="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-600 bg-orange-50 hover:bg-orange-100 px-2.5 py-1.5 rounded-lg border border-orange-200/60 transition-colors">
+                                        <i class="fa-solid fa-code text-[10px]"></i> ${q.lcName}
+                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] opacity-70"></i>
+                                    </a>
+                                ` : `
+                                    <span class="inline-flex items-center text-xs font-medium text-slate-400 bg-slate-100 px-2.5 py-1.5 rounded-lg">
+                                        <i class="fa-solid fa-shield-halved mr-1 text-[10px]"></i> Standard Custom Concept
+                                    </span>
+                                `}
+                            </td>
+                        </tr>
+                    `;
+                    questionGlobalIndex++;
+                });
+
+                sectionHTML += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += sectionHTML;
+            });
+
+            document.getElementById('total-count').innerText = totalQuestionsCount;
+            calculateProgress();
+        }
+
+        // Handle Box Checked event
+        function toggleState(key) {
+            const box = document.getElementById(key);
+            localStorage.setItem(key, box.checked);
+            calculateProgress();
+        }
+
+        // Live calculation metrics
+        function calculateProgress() {
+            let done = 0;
+            for (let i = 0; i < totalQuestionsCount; i++) {
+                if (localStorage.getItem(`tcs_nqt_q_${i}`) === 'true') {
+                    done++;
+                }
+            }
+            const pct = totalQuestionsCount > 0 ? Math.round((done / totalQuestionsCount) * 100) : 0;
+
+            document.getElementById('completed-count').innerText = done;
+            document.getElementById('progress-percent').innerText = `${pct}%`;
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+        }
+
+        // Client-side search bar real-time filter
+        document.getElementById('search-bar').addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('.question-row');
+
+            rows.forEach(row => {
+                const text = row.getAttribute('data-name');
+                if (text.includes(keyword)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Category Tab Switcher
+        function filterCategory(catId) {
+            // Adjust Active styles
+            const buttons = document.querySelectorAll('.cat-btn');
+            buttons.forEach(btn => {
+                btn.className = "cat-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer tr-all";
+            });
+
+            event.currentTarget.className = "cat-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-blue-600 text-white shadow-md cursor-pointer tr-all";
+
+            const sections = document.querySelectorAll('.topic-section');
+            sections.forEach(sec => {
+                if (catId === 'all' || sec.getAttribute('data-cat') === catId) {
+                    sec.style.display = '';
+                } else {
+                    sec.style.display = 'none';
+                }
+            });
+        }
+
+        // Bootstrap on Page Loaded
+        window.onload = renderSheet;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSolutionModal();
+                closeCodeModal();
+            }
+        });
+    </script>
+</body>
+
+</html>
